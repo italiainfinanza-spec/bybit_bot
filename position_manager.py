@@ -1,5 +1,6 @@
 from bybit_client import place_short_market, get_position, close_position, set_cross_margin, get_current_price
 from config import INITIAL_MARGIN, DCA_MULTIPLIER, LEVERAGE, HARD_STOP_PCT, PROFIT_TARGET_PCT, MAX_DCA
+from telegram_notifier import send_message
 import time
 
 active_trades = {}  # symbol → dict
@@ -16,7 +17,9 @@ def manage_trade(symbol, current_price):
             "entries": 1,
             "size": qty
         }
-        print(f"✅ SHORT APERTO {symbol} @ {current_price}")
+        msg = f"SHORT APERTO {symbol} @ {current_price} | Margin: {INITIAL_MARGIN} USDT | Qty: {qty:.4f}"
+        print(f"✅ {msg}")
+        send_message(f"✅ {msg}")
         return
 
     trade = active_trades[symbol]
@@ -26,14 +29,18 @@ def manage_trade(symbol, current_price):
     if unrealized_pct < -HARD_STOP_PCT:
         close_position(symbol)
         del active_trades[symbol]
-        print(f"❌ HARD STOP {symbol}")
+        msg = f"HARD STOP {symbol} | PnL: {unrealized_pct:.2f}%"
+        print(f"❌ {msg}")
+        send_message(f"❌ {msg}")
         return
 
     # PROFIT TARGET
     if unrealized_pct > PROFIT_TARGET_PCT:
         close_position(symbol)
         del active_trades[symbol]
-        print(f"🎉 TARGET RAGGIUNTO {symbol}")
+        msg = f"TARGET RAGGIUNTO {symbol} | PnL: +{unrealized_pct:.2f}%"
+        print(f"🎉 {msg}")
+        send_message(f"🎉 {msg}")
         return
 
     # DCA
@@ -45,4 +52,6 @@ def manage_trade(symbol, current_price):
         trade["entries"] += 1
         trade["avg_price"] = (trade["avg_price"] * trade["size"] + current_price * qty) / (trade["size"] + qty)
         trade["size"] += qty
-        print(f"➕ DCA #{trade['entries']} su {symbol}")
+        msg = f"DCA #{trade['entries']} {symbol} @ {current_price} | Nuovo avg: {trade['avg_price']:.4f} | Margin totale: {trade['total_margin']:.2f} USDT"
+        print(f"➕ {msg}")
+        send_message(f"➕ {msg}")
