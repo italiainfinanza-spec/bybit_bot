@@ -20,4 +20,4 @@ def get_top_gainers():
                     "price": float(t["lastPrice"])
                 })
         except: pass
-    return sorted(gainers, key=lambda x: x["pct"], reverse=True)[:8]
+    return sorted(gainers, key=lambda x: x["pct"], reverse=True)
