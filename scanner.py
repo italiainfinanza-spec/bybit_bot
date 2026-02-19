@@ -2,7 +2,11 @@ from bybit_client import get_tickers
 from config import ENTRY_TRIGGER_PCT, MIN_TURNOVER_24H
 
 def get_top_gainers():
-    tickers = get_tickers()
+    try:
+        tickers = get_tickers()
+    except Exception as e:
+        print(f"⚠️  Errore get_tickers: {e}")
+        return []
     gainers = []
     for t in tickers:
         try:
