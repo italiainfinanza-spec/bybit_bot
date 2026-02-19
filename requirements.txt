@@ -1,0 +1,7 @@
+pybit==5.14.0
+ccxt==4.4.0
+pandas
+numpy
+python-dotenv
+schedule
+requests

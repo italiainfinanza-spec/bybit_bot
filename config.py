@@ -1,0 +1,18 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+CAPITAL = 500.0
+LEVERAGE = 10
+INITIAL_MARGIN = 5.0
+MAX_DCA = 4
+DCA_MULTIPLIER = 1.6
+ENTRY_TRIGGER_PCT = 35.0
+MIN_TURNOVER_24H = 1_200_000
+HARD_STOP_PCT = 12.0
+PROFIT_TARGET_PCT = 8.5
+CHECK_INTERVAL_MIN = 15
+
+API_KEY = os.getenv("BYBIT_API_KEY")
+API_SECRET = os.getenv("BYBIT_API_SECRET")
+TESTNET = os.getenv("TESTNET", "true").lower() == "true"
