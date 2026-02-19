@@ -8,6 +8,41 @@ pending_signals = {} # symbol → {"price": float, "time": float}
 
 CONFIRM_TIMEOUT = 300  # 5 minuti per confermare
 
+def build_signal_message(symbol, price):
+    qty = (INITIAL_MARGIN * LEVERAGE) / price
+    target_price = price * (1 - PROFIT_TARGET_PCT / 100)
+    stop_price   = price * (1 + HARD_STOP_PCT / 100)
+    max_profit   = INITIAL_MARGIN * LEVERAGE * PROFIT_TARGET_PCT / 100
+    max_loss     = INITIAL_MARGIN * LEVERAGE * HARD_STOP_PCT / 100
+
+    dca_lines = []
+    total_margin = INITIAL_MARGIN
+    dca_trigger  = price
+    for i in range(1, MAX_DCA + 1):
+        dca_trigger  = dca_trigger * 1.08
+        dca_margin   = INITIAL_MARGIN * (DCA_MULTIPLIER ** i)
+        total_margin += dca_margin
+        dca_lines.append(
+            f"  #{i}  @ {dca_trigger:.4f}  (+{round(8*i)}%)  | +{dca_margin:.2f} USDT margin"
+        )
+
+    return (
+        f"🔔 SEGNALE SHORT: {symbol}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📌 Entry price:   {price:.4f} USDT\n"
+        f"📦 Quantità:      {qty:.4f}\n"
+        f"💰 Margin:        {INITIAL_MARGIN} USDT  |  Leva: {LEVERAGE}x\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎯 Take Profit:   {target_price:.4f}  (-{PROFIT_TARGET_PCT}%)  → +{max_profit:.2f} USDT\n"
+        f"🛑 Stop Loss:     {stop_price:.4f}  (+{HARD_STOP_PCT}%)   → -{max_loss:.2f} USDT\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"➕ DCA automatici (se il prezzo sale):\n"
+        + "\n".join(dca_lines) + "\n"
+        f"  Margin totale (tutti DCA): {total_margin:.2f} USDT\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"Rispondi /ok_{symbol} per confermare (5 min)"
+    )
+
 def manage_trade(symbol, current_price):
     # Segnale già in attesa di conferma → ignora
     if symbol in pending_signals:
@@ -16,9 +51,7 @@ def manage_trade(symbol, current_price):
     if symbol not in active_trades:
         # Nuovo segnale: chiedi conferma via Telegram
         pending_signals[symbol] = {"price": current_price, "time": time.time()}
-        msg = (f"🔔 SEGNALE SHORT: {symbol} @ {current_price}\n"
-               f"Margin: {INITIAL_MARGIN} USDT | Leva: {LEVERAGE}x\n"
-               f"Rispondi /ok_{symbol} per confermare (5 min)")
+        msg = build_signal_message(symbol, current_price)
         print(msg)
         send_message(msg)
         return
