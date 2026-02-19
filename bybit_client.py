@@ -1,7 +1,7 @@
 from pybit.unified_trading import HTTP
 from config import API_KEY, API_SECRET, TESTNET, LEVERAGE
 
-session = HTTP(testnet=TESTNET, api_key=API_KEY, api_secret=API_SECRET, recv_window=10000)
+session = HTTP(testnet=TESTNET, api_key=API_KEY, api_secret=API_SECRET, recv_window=10000, timeout=10)
 
 def set_cross_margin(symbol):
     try:
