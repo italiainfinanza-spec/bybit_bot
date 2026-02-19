@@ -19,6 +19,7 @@ schedule.every(1).minutes.do(check_confirmations)
 
 print("🚀 Bot avviato - Modalità SAFE 500€ - TESTNET consigliata!")
 print("ℹ️  Conferma i segnali su Telegram con /ok_SYMBOL entro 5 minuti")
+main_loop()
 while True:
     schedule.run_pending()
     time.sleep(60)
